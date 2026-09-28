@@ -1,11 +1,18 @@
-version: '3.7'
 services:
   mongodb_db:
-    image: mongo:latest
+    image: mongo:7.0
     environment:
-      MONGO_INITDB_ROOT_USERNAME: '<change-me>'
-      MONGO_INITDB_ROOT_PASSWORD: '<change-me>'
+      MONGO_INITDB_ROOT_USERNAME: 'picker'
+      MONGO_INITDB_ROOT_PASSWORD: 'local-development-only'
     ports:
-      - 27017:27017
+      - '127.0.0.1:27017:27017'
     volumes:
       - mongodb_data_container:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'quit(db.adminCommand("ping").ok ? 0 : 1)']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  mongodb_data_container:
