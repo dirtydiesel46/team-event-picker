@@ -1,0 +1,29 @@
+display_information:
+  name: Team Event Picker Dev
+  description: Pick team members fairly for recurring events
+  background_color: '#254e70'
+features:
+  bot_user:
+    display_name: Team Picker
+    always_online: false
+  slash_commands:
+    - command: /picker
+      url: https://YOUR-PUBLIC-HOST/api/commands
+      description: Create events and pick participants
+      usage_hint: help
+      should_escape: false
+oauth_config:
+  redirect_urls:
+    - https://YOUR-PUBLIC-HOST/api/oauth
+  scopes:
+    bot:
+      - commands
+      - channels:join
+      - chat:write
+settings:
+  interactivity:
+    is_enabled: true
+    request_url: https://YOUR-PUBLIC-HOST/api/actions
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

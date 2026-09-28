@@ -367,6 +367,7 @@ mod test {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "manual migration: requires DATABASE_TOOL_URL and DATABASE_TOOL_NAME and modifies data"]
     async fn test_migration() {
         let db_tool_url =
             std::env::var("DATABASE_TOOL_URL").expect("DATABASE_TOOL_URL must be set");
@@ -388,6 +389,7 @@ mod test {
     }
 
     #[tokio::test]
+    #[ignore = "manual copy: requires FROM_/TO_DATABASE_TOOL_URL and NAME and modifies data"]
     async fn test_copy() {
         let from_db_tool_url =
             std::env::var("FROM_DATABASE_TOOL_URL").expect("FROM_DATABASE_TOOL_URL must be set");

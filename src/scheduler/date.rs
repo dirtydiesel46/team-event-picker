@@ -360,10 +360,8 @@ mod tests {
         let minutes: Vec<i64> = (0..52)
             .into_iter()
             .map(|index| 2 + index * 7)
-            .enumerate()
-            .map(|(index, day)| {
-                (day - 1) * (24 * 60) + 1 - (if index < 12 || index > 42 { 0 } else { 60 })
-            })
+            // UTC has no daylight-saving offset.
+            .map(|day| (day - 1) * (24 * 60) + 1)
             .collect();
         assert_eq!(result, minutes);
     }
@@ -381,10 +379,8 @@ mod tests {
         let minutes: Vec<i64> = (0..26)
             .into_iter()
             .map(|index| 2 + index * 7 * 2)
-            .enumerate()
-            .map(|(index, day)| {
-                (day - 1) * (24 * 60) + 1 - (if index < 6 || index > 21 { 0 } else { 60 })
-            })
+            // UTC has no daylight-saving offset.
+            .map(|day| (day - 1) * (24 * 60) + 1)
             .collect();
         assert_eq!(result, minutes);
     }
