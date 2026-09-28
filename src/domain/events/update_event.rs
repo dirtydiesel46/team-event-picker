@@ -3,7 +3,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use serde_trim::{string_trim, vec_string_trim};
 
-use crate::domain::entities::{Event, Participant, RepeatPeriod};
+use crate::domain::entities::{Event, RepeatPeriod};
 use crate::domain::timezone::Timezone;
 use crate::repository::errors::{FindError, UpdateError};
 use crate::repository::event::Repository;
@@ -55,18 +55,18 @@ pub async fn execute(repo: Arc<dyn Repository>, req: Request) -> Result<Response
         timestamp: req.timestamp,
         timezone: Timezone::from(req.timezone.clone()),
         repeat: RepeatPeriod::try_from(req.repeat.clone()).map_err(|_| Error::BadRequest)?,
-        participants: [
-            existing_event
-                .participants
-                .into_iter()
-                .filter(|p| !req.participants.contains(&p.user))
-                .collect::<Vec<Participant>>(),
-            req.participants
-                .into_iter()
-                .map(|name| name.into())
-                .collect::<Vec<Participant>>(),
-        ]
-        .concat(),
+        participants: req
+            .participants
+            .into_iter()
+            .map(|user| {
+                existing_event
+                    .participants
+                    .iter()
+                    .find(|participant| participant.user == user)
+                    .cloned()
+                    .unwrap_or_else(|| user.into())
+            })
+            .collect(),
         channel: existing_event.channel,
         team_id: existing_event.team_id,
         deleted: false,

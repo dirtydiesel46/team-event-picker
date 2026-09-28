@@ -1,7 +1,7 @@
 use std::{collections::HashSet, sync::Arc};
 
 use team_event_picker::{
-    domain::events::{create_event, delete_event, pick_participant},
+    domain::events::{create_event, delete_event, pick_participant, update_event},
     repository::{
         errors::FindError,
         event::{MongoDbRepository, Repository},
@@ -72,6 +72,58 @@ async fn event_lifecycle() {
     assert!(picked.contains(&next.id));
     let stored = repo.find_event(created.id, channel.clone()).await.unwrap();
     assert_eq!(stored.participants.iter().filter(|p| p.picked).count(), 1);
+
+    // Editing must replace membership and preserve retained users' pick history.
+    let retained = stored
+        .participants
+        .iter()
+        .find(|p| p.picked)
+        .unwrap()
+        .clone();
+    for selected in [
+        vec![retained.user.clone()],
+        vec![retained.user.clone(), "U_NEW".into()],
+        vec!["U_NEW".into()],
+    ] {
+        update_event::execute(
+            repo.clone(),
+            update_event::Request {
+                id: created.id,
+                name: "Edited event".into(),
+                timestamp: 1893456000,
+                timezone: "UTC".into(),
+                repeat: "none".into(),
+                participants: selected.clone(),
+                channel: channel.clone(),
+            },
+        )
+        .await
+        .unwrap();
+        let edited = repo.find_event(created.id, channel.clone()).await.unwrap();
+        assert_eq!(
+            edited
+                .participants
+                .iter()
+                .map(|p| p.user.clone())
+                .collect::<Vec<_>>(),
+            selected,
+            "saved membership must exactly match the edit selection"
+        );
+        if selected.contains(&retained.user) {
+            assert_eq!(
+                edited
+                    .participants
+                    .iter()
+                    .find(|p| p.user == retained.user)
+                    .unwrap(),
+                &retained
+            );
+        }
+        if let Some(new) = edited.participants.iter().find(|p| p.user == "U_NEW") {
+            assert!(!new.picked);
+            assert_eq!(new.picked_at, None);
+        }
+    }
 
     delete_event::execute(
         repo.clone(),
