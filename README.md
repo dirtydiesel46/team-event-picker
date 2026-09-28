@@ -6,6 +6,26 @@ someone until everyone has had a turn. MongoDB stores events and workspace OAuth
 This fork revives [jotar910/team-event-picker](https://github.com/jotar910/team-event-picker).
 It is a Slack backend, not a standalone web UI. Start with a development workspace.
 
+## Fork status
+
+This fork includes the latest upstream commit checked on 2026-09-28, local setup
+repairs, continuous integration, and a fix for edited participant selections.
+Removing a participant now removes them from the saved event; retained participants
+keep their pick history.
+
+You can use the instructions below to run your own development installation. There
+is **no permanent hosted service or public Add to Slack link yet**. See
+[the public rollout plan](docs/public-rollout.md) for the remaining work.
+
+## Upstream attribution and licence
+
+The original author is [jotar910](https://github.com/jotar910/team-event-picker).
+The upstream README states: “This project is licensed under the MIT License”, but
+its referenced LICENSE file is missing and GitHub does not detect a licence.
+That declaration is recorded here for attribution; this fork does not invent a
+replacement licence grant. Clarify the applicable terms before a public service
+or company deployment.
+
 ## Local setup
 
 Requirements: Rust (tested with 1.90.0), Docker Desktop with Compose, and a Slack
@@ -31,6 +51,23 @@ curl --fail http://localhost:8080/health
 
 Expected response: `OK`. Placeholder Slack credentials allow this local startup check,
 but must be replaced before using Slack. The backend listens on port 8080 by default.
+
+## Run the backend in Docker
+
+After configuring your own Slack app and MongoDB, build and run the backend:
+
+```sh
+docker build -t team-event-picker:local .
+docker run --rm --name team-event-picker --env-file .env -p 8080:8080 team-event-picker:local
+```
+
+Set `PORT=8080` for this mapping. Inside a container, `127.0.0.1` refers to that
+container, so replace both database URLs with an address it can reach. For the
+local Compose database on Docker Desktop, use `host.docker.internal` instead of
+`127.0.0.1`. On a server, use your database's private network address and credentials.
+The image runs as a non-root user and contains the compiled binary, not your .env.
+Use a persistent database and a stable HTTPS reverse proxy for ongoing use. Run
+only one backend instance because each instance runs its own scheduler.
 
 ## Connect a new Slack app
 
@@ -87,7 +124,9 @@ Stop the Rust server with Ctrl-C. Stop MongoDB with `docker compose stop`; use
 
 ## Current verification limits
 
-Local build, unit tests, MongoDB lifecycle test, and HTTP startup are verifiable without
-Slack credentials. Live OAuth, Slack messages, interactive actions, and scheduled posts
-still need an end-to-end check in your workspace. The inherited dependency stack and
-scheduling behavior have not received a full modernization or production audit.
+Verified: Rust 1.90 build, unit tests, isolated MongoDB lifecycle and participant-edit
+regressions, and GitHub CI. OAuth installation and a signed command request were
+verified with a development Slack app; a tester confirmed participant edits work
+in Slack. Scheduled delivery across restarts, year boundaries and timezones still
+needs validation. The inherited dependency stack and authentication have not
+received a full modernization or production audit.

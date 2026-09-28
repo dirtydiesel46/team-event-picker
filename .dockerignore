@@ -1,9 +1,7 @@
-target
-Dockerfile
-.dockerignore
 .git
-.gitignore
-docker-compose.yml
-docker-compose-local.yml
-.env.tmpl
-.env.local
+.env
+.env.*
+!.env.tmpl
+target
+*.log
+.DS_Store
